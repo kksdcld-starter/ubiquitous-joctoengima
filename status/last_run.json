@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "time_utc": "2026-11-10T16:03:14Z",
+  "time_cn": "2026-11-11 00:03:14",
+  "duration_s": 26,
+  "note": "",
+  "accounts": [
+    {
+      "name": "account-1",
+      "ok": true,
+      "state": "ok",
+      "message": "续期成功",
+      "http": 200,
+      "cookie_days_left": 29
+    }
+  ]
+}
