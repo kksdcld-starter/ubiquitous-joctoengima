@@ -30,6 +30,7 @@ jobs:
         with:
           repository: ${{ secrets.PRIVATE_REPO_NAME }}
           token: ${{ secrets.REPO_TOKEN }}
+          ref: main
           path: .private
           persist-credentials: false
 
