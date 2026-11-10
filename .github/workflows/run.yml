@@ -1,0 +1,121 @@
+name: MRTCloud Renew
+
+on:
+  schedule:
+    - cron: "11 */12 * * *"      # 每 12 小时一次 (UTC), 错开整点减少排队
+  workflow_dispatch:
+
+# 同一时刻只允许一个实例, 避免重复续期 / 并发 commit 冲突
+concurrency:
+  group: bot-renew
+  cancel-in-progress: false
+
+permissions:
+  contents: write                # 提交 status/
+  actions: write                 # 清理历史 workflow runs
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # 1) 公库: 仅用于保存运行状态
+      - name: Checkout public repo
+        uses: actions/checkout@v4
+
+      # 2) 私库: 拉取脚本到 .private/ (PAT 需要对私库有 Contents: Read)
+      - name: Checkout private code repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/${{ secrets.PRIVATE_REPO_NAME }}
+          token: ${{ secrets.REPO_TOKEN }}
+          path: .private
+          persist-credentials: false
+
+      - name: Python env
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: .private/requirements.txt
+
+      - name: System deps (Xvfb / 字体)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb x11-utils xdotool scrot python3-tk python3-dev \
+            fonts-takao fonts-ipafont fonts-vlgothic fonts-noto-cjk language-pack-ja
+
+      - name: Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r .private/requirements.txt
+
+      - name: Log the date time
+        run: echo "DATE=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_ENV"
+
+      # 3) 运行脚本. continue-on-error: 失败也要继续走 "写状态 -> 提交"; 最后一步再让 Job 变红
+      - name: Run renew
+        id: run
+        continue-on-error: true
+        timeout-minutes: 26
+        env:
+          WEBSITE_COOKIE_1: ${{ secrets.WEBSITE_COOKIE_1 }}
+          # WEBSITE_COOKIE_2: ${{ secrets.WEBSITE_COOKIE_2 }}   # 多账号按需追加
+          MRT_SITE_ORIGIN: ${{ secrets.MRT_SITE_ORIGIN }}
+          MRT_BOT_ID: ${{ secrets.MRT_BOT_ID }}
+          MRT_TS_SITEKEY: ${{ secrets.MRT_TS_SITEKEY }}
+          TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOTIFY_TOKEN: ${{ secrets.GOTIFY_TOKEN }}
+          GOTIFY_SERVER_URL: ${{ secrets.GOTIFY_SERVER_URL }}
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}      # 回写刷新后的 Cookie Secret (GITHUB_REPOSITORY 为 Actions 默认变量)
+          RENEW_THRESHOLD_DAYS: "7"                  # Cookie 剩余天数低于该值时告警
+          MRT_STATUS_DIR: status
+          MRT_VERBOSE: "0"                           # 公库日志全网可见, 请保持 0
+        run: |
+          mkdir -p status
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python .private/app.py
+
+      # 4) 兜底状态: 即使脚本在写状态前就崩溃, 也能留下结果
+      - name: Record CI outcome
+        if: always()
+        run: |
+          mkdir -p status
+          printf '{\n  "outcome": "%s",\n  "time_cn": "%s",\n  "run_url": "%s/%s/actions/runs/%s"\n}\n' \
+            "${{ steps.run.outcome }}" "$DATE" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" \
+            > status/ci.json
+
+      - name: Remove private code
+        if: always()
+        run: rm -rf .private debug_shots
+
+      - name: Commit status
+        if: always()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "LAST RUN - ${{ env.DATE }} - ${{ steps.run.outcome }}"
+          file_pattern: status
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          # 若想保持提交历史干净, 可改用强推单分支:
+          create_branch: true
+          branch: main
+          push_options: --force
+
+      - name: Clean old workflow runs
+        if: always()
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          delete_workflow_pattern: ${{ github.workflow }}
+          retain_days: 0
+          keep_minimum_runs: 3
+
+      - name: Fail job if renew failed
+        if: steps.run.outcome != 'success'
+        run: |
+          echo "::error::MRTCloud renew failed, see status/last_run.json"
+          exit 1
