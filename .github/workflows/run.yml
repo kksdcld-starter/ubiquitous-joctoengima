@@ -28,7 +28,7 @@ jobs:
       - name: Checkout private code repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/${{ secrets.PRIVATE_REPO_NAME }}
+          repository: ${{ secrets.PRIVATE_REPO_NAME }}
           token: ${{ secrets.REPO_TOKEN }}
           path: .private
           persist-credentials: false
