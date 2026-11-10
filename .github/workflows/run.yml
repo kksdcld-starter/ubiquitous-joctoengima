@@ -118,5 +118,5 @@ jobs:
       - name: Fail job if renew failed
         if: steps.run.outcome != 'success'
         run: |
-          echo "::error::MRTCloud renew failed, see status/last_run.json"
+          echo "::error::bot renew failed, see status/last_run.json"
           exit 1
