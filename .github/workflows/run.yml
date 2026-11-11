@@ -2,7 +2,7 @@ name: BOT Renew
 
 on:
   schedule:
-    - cron: "11 */12 * * *"      # 每 12 小时一次 (UTC), 错开整点减少排队
+    - cron: "11 4,23 * * *"      # Runs at 04:11 and 23:11
   workflow_dispatch:
 
 # 同一时刻只允许一个实例, 避免重复续期 / 并发 commit 冲突
