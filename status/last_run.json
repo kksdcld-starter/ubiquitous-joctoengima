@@ -1,8 +1,8 @@
 {
   "success": true,
-  "time_utc": "2026-11-14T03:13:30Z",
-  "time_cn": "2026-11-14 11:13:30",
-  "duration_s": 33,
+  "time_utc": "2026-11-14T11:28:03Z",
+  "time_cn": "2026-11-14 19:28:03",
+  "duration_s": 32,
   "note": "",
   "accounts": [
     {
@@ -11,7 +11,7 @@
       "state": "ok",
       "message": "续期成功",
       "http": 200,
-      "cookie_days_left": 26
+      "cookie_days_left": 25
     }
   ]
 }
