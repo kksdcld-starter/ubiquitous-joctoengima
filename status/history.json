@@ -58,5 +58,10 @@
     "time_cn": "2026-11-15 10:39:49",
     "success": true,
     "summary": "account-1:ok"
+  },
+  {
+    "time_cn": "2026-11-15 19:59:47",
+    "success": false,
+    "summary": "account-1:cf_blocked"
   }
 ]

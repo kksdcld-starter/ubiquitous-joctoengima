@@ -1,17 +1,17 @@
 {
-  "success": true,
-  "time_utc": "2026-11-15T02:39:49Z",
-  "time_cn": "2026-11-15 10:39:49",
-  "duration_s": 39,
+  "success": false,
+  "time_utc": "2026-11-15T11:59:47Z",
+  "time_cn": "2026-11-15 19:59:47",
+  "duration_s": 192,
   "note": "",
   "accounts": [
     {
       "name": "account-1",
-      "ok": true,
-      "state": "ok",
-      "message": "续期成功",
-      "http": 200,
-      "cookie_days_left": 25
+      "ok": false,
+      "state": "cf_blocked",
+      "message": "被 Cloudflare 拦截",
+      "http": null,
+      "cookie_days_left": 24
     }
   ]
 }
