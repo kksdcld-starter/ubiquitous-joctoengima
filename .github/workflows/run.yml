@@ -1,4 +1,4 @@
-name: BOT Renew
+name: BOT
 
 on:
   schedule:
@@ -41,16 +41,34 @@ jobs:
           cache: pip
           cache-dependency-path: .private/requirements.txt
 
+      # [修改] 新增 xauth (pyautogui / Xlib 连接 Xvfb 需要); 其余沿用
       - name: System deps (Xvfb / 字体)
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb x11-utils xdotool scrot python3-tk python3-dev \
+          sudo apt-get install -y xvfb xauth x11-utils xdotool scrot python3-tk python3-dev \
             fonts-takao fonts-ipafont fonts-vlgothic fonts-noto-cjk language-pack-ja
 
+      # [新增] Ubuntu 24.04 默认限制非特权用户命名空间, 会导致 Chrome 沙箱 / 驱动异常退出
+      - name: Allow Chrome sandbox (AppArmor userns)
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+
+      # [修改] 强制升级到最新 SeleniumBase / pyautogui:
+      #        CDP 模式 (无 chromedriver) 与新版 Chrome 的兼容修复都在新版本里
       - name: Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -r .private/requirements.txt
+          pip install --upgrade seleniumbase pyautogui python-xlib requests pynacl
+
+      # [新增] 预下载驱动 (仅 uc 备用模式需要; 失败不影响 CDP 模式) + 打印版本, 便于排查
+      - name: Show browser / driver versions
+        run: |
+          google-chrome --version || true
+          python -c "import seleniumbase; print('seleniumbase', seleniumbase.__version__)"
+          sbase get chromedriver || true
+          xdpyinfo -display :99 >/dev/null 2>&1 || true
 
       - name: Log the date time
         run: echo "DATE=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')" >> "$GITHUB_ENV"
@@ -61,6 +79,7 @@ jobs:
         continue-on-error: true
         timeout-minutes: 26
         env:
+          PYTHONUNBUFFERED: "1"
           WEBSITE_COOKIE_1: ${{ secrets.WEBSITE_COOKIE_1 }}
           # WEBSITE_COOKIE_2: ${{ secrets.WEBSITE_COOKIE_2 }}   # 多账号按需追加
           MRT_SITE_ORIGIN: ${{ secrets.MRT_SITE_ORIGIN }}
@@ -73,10 +92,12 @@ jobs:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}      # 回写刷新后的 Cookie Secret (GITHUB_REPOSITORY 为 Actions 默认变量)
           RENEW_THRESHOLD_DAYS: "7"                  # Cookie 剩余天数低于该值时告警
           MRT_STATUS_DIR: status
+          MRT_BROWSER_MODE: "auto"                   # [新增] auto: cdp -> uc -> cdp ...; 也可固定为 cdp / uc
+          MRT_BROWSER_RESTARTS: "3"                  # [新增] 浏览器崩溃后最多启动的会话数
           MRT_VERBOSE: "0"                           # 公库日志全网可见, 请保持 0
         run: |
           mkdir -p status
-          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python .private/app.py
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24 -ac +extension RANDR" python .private/app.py
 
       # 4) 兜底状态: 即使脚本在写状态前就崩溃, 也能留下结果
       - name: Record CI outcome
