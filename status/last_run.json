@@ -1,16 +1,16 @@
 {
-  "success": false,
-  "time_utc": "2026-11-18T15:24:53Z",
-  "time_cn": "2026-11-18 23:24:53",
-  "duration_s": 328,
+  "success": true,
+  "time_utc": "2026-11-18T15:45:15Z",
+  "time_cn": "2026-11-18 23:45:15",
+  "duration_s": 21,
   "note": "",
   "accounts": [
     {
       "name": "account-1",
-      "ok": false,
-      "state": "browser_error",
-      "message": "浏览器/驱动异常 (已多次重启仍失败)",
-      "http": null,
+      "ok": true,
+      "state": "ok",
+      "message": "续期成功",
+      "http": 200,
       "cookie_days_left": 29
     }
   ]
