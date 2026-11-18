@@ -1,15 +1,15 @@
 {
   "success": false,
-  "time_utc": "2026-11-18T15:03:20Z",
-  "time_cn": "2026-11-18 23:03:20",
-  "duration_s": 202,
+  "time_utc": "2026-11-18T15:24:53Z",
+  "time_cn": "2026-11-18 23:24:53",
+  "duration_s": 328,
   "note": "",
   "accounts": [
     {
       "name": "account-1",
       "ok": false,
-      "state": "cf_blocked",
-      "message": "被 Cloudflare 拦截",
+      "state": "browser_error",
+      "message": "浏览器/驱动异常 (已多次重启仍失败)",
       "http": null,
       "cookie_days_left": 29
     }
