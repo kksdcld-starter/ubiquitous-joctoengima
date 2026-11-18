@@ -1,8 +1,8 @@
 {
   "success": false,
-  "time_utc": "2026-11-18T04:21:52Z",
-  "time_cn": "2026-11-18 12:21:52",
-  "duration_s": 192,
+  "time_utc": "2026-11-18T15:03:20Z",
+  "time_cn": "2026-11-18 23:03:20",
+  "duration_s": 202,
   "note": "",
   "accounts": [
     {
@@ -11,7 +11,7 @@
       "state": "cf_blocked",
       "message": "被 Cloudflare 拦截",
       "http": null,
-      "cookie_days_left": 22
+      "cookie_days_left": 29
     }
   ]
 }
